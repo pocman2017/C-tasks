@@ -1,0 +1,178 @@
+// Студент Пономарев П.С.
+// Вариант № 13 "Строки"
+// Заменить в строке все целые числа соответствующим повторением следующего за ними
+// символа(например "abc5xacb15y" - " abcxxxxxacbyyyyyyyyyyyyyyy ").
+#include <stdio.h>
+#define N 200
+int len(char S[]);
+int DigitSearch(char S[]);
+int DigitCount(char S[N], int pos);
+int Convert(char S[N], int pos);
+int toNumber(char S[], int n);
+int Elnum(char S[], int pos);
+void sdvig(char S[N], int pos, int num);
+void vstavka(char S[], int pos, int num);
+void showArr(char S[], int n);
+void resalt(char S[]);
+
+int main()
+{	
+	char S[N] = "a1vm4bv3hgd";
+	int pos = 0;
+	/*//Вызов функции и определение в массиве индекс позиции первой цифры
+	//int pos = DigitSearch(S);
+	printf("Pos = %d\n", DigitSearch(S));
+	//Вызов функции определения длины массива
+	printf("len = %d\n", len(S));//
+	//Должна выводить количество цифр в числе.	
+	printf("Cnt = %d\n", DigitCount(S, pos));
+	// Выводит первое число полностью.	
+	printf("Chislo = %d\n", toNumber(S, pos));
+	// Выводит индекс последней цифры перврго числа
+	printf("Index = %d\n", Elnum(S, pos));	*/
+	printf("Massiv na vhode\n");
+	showArr(S, N);		
+		resalt(S);	
+		printf("Massiv posle\n");
+	showArr(S, N);	 
+	return 0;
+}
+void resalt(char S[])
+{
+	int i;
+	int pos = 0, num/*, tmp*/;	
+	for (i = pos; S[i] != '\0'; i++)
+	{
+		if (S[i] >= '0' && S[i] <= '9')
+		{		
+			pos = i;				
+			num = toNumber(S, pos);		
+			sdvig(S, pos, num); 
+			vstavka(S, pos, num);	
+			//pos = pos + num;
+			//S[i] = S[i + 1];					
+		    continue;		
+		}
+	} 
+}
+// Замена символов в массиве
+void vstavka(char S[N], int pos, int num)
+{
+	int i;
+	char c;	
+	/*if (num == 1)
+		{
+			c = S[pos + 1];
+	}
+	else
+	{
+ 		c = S[pos + num + 1];
+	}*/
+	num = toNumber(S, pos);
+	c = S[pos + num + 1];	
+ 	for (i = pos; i < pos + num; i++)
+	{		
+			S[i] = c;		
+	}
+}
+//Сдвиг массива на 1 элемент....Пока работает
+void sdvig(char S[N], int pos, int num)
+{
+	int i;
+	//int cnt = DigitCount(S, pos);
+	num = toNumber(S, num); 
+	int length = len(S);	
+		for (i = length; i > pos; i--)  
+		{   
+   			S[i + num] = S[i];			 	
+		} 
+}
+// Выводит индекс последней цифры перврго числа 
+int Elnum(char S[], int pos)
+{
+	int cnt/*, cnt1*/;
+	cnt = DigitCount(S, pos);
+	cnt = cnt + pos - 1;
+	return cnt;
+} 
+// Выводит первое число полностью.
+int toNumber(char S[], int n)
+{
+	int i;
+	int pos = 0, pos_start = 0;
+	int len;
+	int num;
+	for (i = 0; i < N; i++)
+	{
+		pos = DigitSearch(S);
+		if (pos >= 0)
+		{
+			len = DigitCount(S, pos);
+			pos_start = pos + len;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	num = Convert(S, pos);
+	return num;
+}
+// Переводит цифры в число
+int Convert(char S[N], int pos)
+{
+	int i;
+	int sum = 0;	
+	for (i = pos; S[i] >= '0' && S[i] <= '9'; i++)
+	{
+		sum *= 10;
+		sum += S[i] - '0';		
+	}
+	return sum;
+}
+// Выводит количество цифр в первом числе (+)
+int DigitCount(char S[N], int pos)
+{
+	int i;
+	int cnt = 0;	
+	for (i = pos; S[i] != '\0'; i++)
+	{
+		if (S[i] >= '0' && S[i] <= '9')
+		{
+			cnt += 1;			
+		}	
+		else
+		{
+			break;
+		} 
+	}		
+	return cnt;
+}
+//Возфращоет длину массива без '\0'
+int len(char S[])
+{
+	int i;
+	for (i = 0; S[i] != '\0'; i++);
+	return i;
+}
+// Возвращает индекс первого числа
+int DigitSearch(char S[])
+{
+	int i;
+	for (i = 0; S[i] != '\0'; i++)
+	{
+		if (S[i] >= '0' && S[i] <= '9')
+			return i;
+	}
+	return -1;
+}
+//Выводит массив (+)
+void showArr(char S[], int n)
+{ 
+	int i;
+	for (i = 0; i < n; i++)
+	{		
+		printf("%c ", S[i]);		 
+	}
+	printf("\n");
+}
