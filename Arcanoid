@@ -1,0 +1,290 @@
+#include "stdio.h"
+#include "conio.h"
+#include "windows.h"
+
+#define ESC 27
+#define ENTER 13
+#define UP 72
+#define DOWN 80
+#define LEFT 75
+#define RIGHT 77
+
+
+#define MENU_SIZE 4
+#define MENU_X 40
+#define MENU_Y 10
+char menu[MENU_SIZE][10] = { "NEW GAME","OPTIONS","CREDITS","EXIT" };
+#define MENU_NEW_GAME 0
+#define MENU_OPTIONS 1
+#define MENU_CREDITS 2
+#define MENU_EXIT 3
+
+
+enum colors_enum
+{
+	Black = 0,
+	Grey = FOREGROUND_INTENSITY,
+	LightGrey = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
+	White = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	Blue = FOREGROUND_BLUE,
+	Green = FOREGROUND_GREEN,
+	Cyan = FOREGROUND_GREEN | FOREGROUND_BLUE,
+	Red = FOREGROUND_RED,
+	Purple = FOREGROUND_RED | FOREGROUND_BLUE,
+	LightBlue = FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	LightGreen = FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+	LightCyan = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	LightRed = FOREGROUND_RED | FOREGROUND_INTENSITY,
+	LightPurple = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	Orange = FOREGROUND_RED | FOREGROUND_GREEN,
+	Yellow = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+};
+
+HANDLE hStdOut;
+
+void gotoxy(int x, int y)
+{
+	COORD c = { x, y };
+	SetConsoleCursorPosition(hStdOut, c);
+}
+
+void cursorHide()
+{
+	CONSOLE_CURSOR_INFO cursorInfo;
+	cursorInfo.dwSize = 100;
+	cursorInfo.bVisible = FALSE;
+
+	SetConsoleCursorInfo(hStdOut, &cursorInfo);
+}
+
+void setcolor(WORD attr)
+{
+	SetConsoleTextAttribute(hStdOut, attr);
+}
+
+void showMenu(int pos)
+{
+	int i;
+
+	for (i = 0; i < MENU_SIZE; i++)
+	{
+		gotoxy(MENU_X, MENU_Y + i);
+
+		if (i == pos)
+		{
+			setcolor(LightGreen);
+		}
+		else
+		{
+			setcolor(White);
+		}
+
+		printf("%s", menu[i]);
+	}
+}
+
+void game();
+void options();
+void credits();
+
+int main()
+{
+	int pos = 0;
+	int isExit = 0;
+	char ch;
+
+	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	cursorHide();
+
+
+	while (!isExit)
+	{
+		showMenu(pos);
+		ch = getchar();
+
+		switch (ch)
+		{
+		case ESC:isExit = 1; break;
+		case UP:
+			if (pos > 0)
+			{
+				pos--;
+			}
+			break;
+		case DOWN:
+			if (pos < MENU_SIZE - 1)
+			{
+				pos++;
+			}
+			break;
+		case ENTER:
+			switch (pos)
+			{
+			case MENU_NEW_GAME: system("cls"); game(); system("cls"); break;
+			case MENU_OPTIONS: options(); break;
+			case MENU_CREDITS: credits(); break;
+			case MENU_EXIT: isExit = 1; break;
+			}
+			break;
+		}
+	}
+}
+
+#define BALL_VIEW '0'
+#define BALL_START_X 110
+#define BALL_START_Y 20
+#define BALL_START_DX 1
+#define BALL_START_DY -1
+#define BALL_DRAW 1
+#define BALL_ERASE 0
+
+void drawBall(char view, int x, int y, int mode)
+{
+	gotoxy(x, y);
+	if (BALL_DRAW == mode)
+	{
+		setcolor(White);
+	}
+	else
+	{
+		setcolor(Black);
+	}
+	printf("%c", view);
+}
+
+#define FIELD_BORDER_LEFT 1
+#define FIELD_BORDER_RIGHT 119
+#define FIELD_BORDER_TOP 0
+#define FIELD_BORDER_BOTTOM 29
+
+void drawWalls()
+{
+	int i;
+	for (i = FIELD_BORDER_LEFT; i < FIELD_BORDER_RIGHT; i++)
+	{
+		gotoxy(i, FIELD_BORDER_TOP);
+		printf("#");
+	}
+
+	for (i = FIELD_BORDER_TOP; i < FIELD_BORDER_BOTTOM; i++)
+	{
+		gotoxy(FIELD_BORDER_LEFT, i);
+		printf("#");
+		gotoxy(FIELD_BORDER_RIGHT, i);
+		printf("#");
+	}
+}
+
+#define BOX_VIEW 'T'
+#define BOX_START_X 60
+#define BOX_START_Y 29
+#define BOX_WIDTH 10
+#define BOX_DRAW 1
+#define BOX_ERASE 0
+
+void drawBox(char view, int x, int y, int mode)
+{
+	int i;
+	gotoxy(x, y);
+	if (BOX_DRAW == mode)
+	{
+		setcolor(White);
+	}
+	else
+	{
+		setcolor(Black);
+	}
+	for (i = 0; i < BOX_WIDTH; i++)
+	{
+		printf("%c", view);
+	}
+}
+
+void game()
+{
+	int isExit = 0;
+	char ch;
+	//int i;
+	DWORD ticks;
+
+	int ball_x, ball_y;
+	int ball_dx, ball_dy;
+
+	int box_x = BOX_START_X;
+
+	ball_x = BALL_START_X;
+	ball_y = BALL_START_Y;
+	ball_dx = BALL_START_DX;
+	ball_dy = BALL_START_DY;
+
+	drawWalls();
+	drawBox(BOX_VIEW, box_x, BOX_START_Y, BOX_DRAW);
+	while (!isExit)
+	{
+
+		if (ball_y >= FIELD_BORDER_BOTTOM)
+		{
+			isExit = 1;
+			continue;
+		}
+
+		if (ball_y + ball_dy < FIELD_BORDER_TOP + 1)
+		{
+			ball_dy *= -1;
+		}
+		if ((ball_y == BOX_START_Y - 1) && (ball_x >= box_x && ball_x <= box_x + BOX_WIDTH - 1))
+		{
+			ball_dy *= -1;
+		}
+
+
+		if (ball_x + ball_dx < FIELD_BORDER_LEFT + 1 || ball_x + ball_dx> FIELD_BORDER_RIGHT - 1)
+		{
+			ball_dx *= -1;
+		}
+		ball_x += ball_dx;
+		ball_y += ball_dy;
+		drawBall(BALL_VIEW, ball_x, ball_y, BALL_DRAW);
+		//Sleep(100);
+
+		ticks = GetTickCount64();
+		while (GetTickCount64() - ticks < 100)
+		{
+			if (_kbhit())
+			{
+				ch = getchar();
+
+				switch (ch)
+				{
+				case ESC:isExit = 1; break;
+				case LEFT:
+
+					if (box_x - 1 > FIELD_BORDER_LEFT)
+					{
+						drawBox(BOX_VIEW, box_x, BOX_START_Y, BOX_ERASE);
+						box_x--;
+						drawBox(BOX_VIEW, box_x, BOX_START_Y, BOX_DRAW);
+					}
+					break;
+				case RIGHT:
+					drawBox(BOX_VIEW, box_x, BOX_START_Y, BOX_ERASE);
+					box_x++;
+					drawBox(BOX_VIEW, box_x, BOX_START_Y, BOX_DRAW);
+				}
+			}
+		}
+
+		drawBall(BALL_VIEW, ball_x, ball_y, BALL_ERASE);
+	}
+
+}
+
+
+void options()
+{
+
+}
+void credits()
+{
+
+}
