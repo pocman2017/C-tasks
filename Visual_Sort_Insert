@@ -1,0 +1,154 @@
+#include "stdio.h"
+#include "conio.h"
+#include "windows.h"
+
+#define N 10
+
+#define SX 20
+#define SY 10
+
+
+enum colors_enum
+{
+	Black = 0,
+	Grey = FOREGROUND_INTENSITY,
+	LightGrey = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
+	White = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	Blue = FOREGROUND_BLUE,
+	Green = FOREGROUND_GREEN,
+	Cyan = FOREGROUND_GREEN | FOREGROUND_BLUE,
+	Red = FOREGROUND_RED,
+	Purple = FOREGROUND_RED | FOREGROUND_BLUE,
+	LightBlue = FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	LightGreen = FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+	LightCyan = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	LightRed = FOREGROUND_RED | FOREGROUND_INTENSITY,
+	LightPurple = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	Orange = FOREGROUND_RED | FOREGROUND_GREEN,
+	Yellow = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+};
+
+HANDLE hStdOut;
+
+void gotoxy(int x, int y)
+{
+	COORD c = { x, y };
+	SetConsoleCursorPosition(hStdOut, c);
+}
+
+void cursorHide()
+{
+	CONSOLE_CURSOR_INFO cursorInfo;
+	cursorInfo.dwSize = 100;
+	cursorInfo.bVisible = FALSE;
+
+	SetConsoleCursorInfo(hStdOut, &cursorInfo);
+}
+
+void setcolor(WORD attr)
+{
+	SetConsoleTextAttribute(hStdOut, attr);
+}
+
+int searchMin(int A[], int l, int r);
+void selectSort(int A[], int n);
+
+void show(int A[], int n, int x, int y, int border, int pos1, int pos2);
+
+void main()
+{
+	int Arr[N] = { 3,5,1,6,8,0,2,1,8,6 };
+
+	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	cursorHide();
+	show(Arr, N, SX, SY, 0, -1, -1);
+	getchar();
+	//system("cls");
+	selectSort(Arr, N);
+	show(Arr, N, SX, SY, N, -1, -1);
+	getchar();
+}
+
+void clear(int A[], int n, int x, int y)
+{
+	int i;
+	setcolor(Black);
+	for (i = 0; i < n; i++)
+	{
+		gotoxy(x + i * 3, y);
+		printf("   ");
+	}
+}
+
+void show(int A[], int n, int x, int y, int border, int pos1, int pos2)
+{
+	int i;
+
+	clear(A, n, x, y - 1);
+	clear(A, n, x, y);
+
+	for (i = 0; i < n; i++)
+	{
+		if (i < border)
+		{
+			setcolor(LightGreen);
+		}
+		else
+		{
+			setcolor(White);
+		}
+		if (i == pos1 || i == pos2)
+		{
+			gotoxy(x + i * 3, y - 1);
+		}
+		else
+		{
+			gotoxy(x + i * 3, y);
+		}
+		printf("%d", A[i]);
+	}
+	printf("\n");
+}
+
+int searchMin(int A[], int l, int r)
+{
+	int i;
+	int pos;
+	pos = l;
+
+	for (i = l + 1; i <= r; i++)
+	{
+		show(A, r + 1, SX, SY, l, pos, -1);
+		Sleep(100);
+		show(A, r + 1, SX, SY, l, pos, i);
+		Sleep(100);
+
+		if (A[i] < A[pos])
+		{
+			pos = i;
+		}
+	}
+	return pos;
+}
+void selectSort(int A[], int n)
+{
+	int i;
+	int pos;
+	int tmp;
+	for (i = 0; i < n; i++)
+	{
+		pos = searchMin(A, i, n - 1);
+		show(A, N, SX, SY, i, i, pos);
+		Sleep(300);
+
+		tmp = A[i];
+		A[i] = A[pos];
+		A[pos] = tmp;
+
+		show(A, N, SX, SY, i, i, pos);
+		Sleep(300);
+
+		show(A, N, SX, SY, i + 1, -1, -1);
+		Sleep(300);
+	}
+}
