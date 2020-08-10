@@ -1,0 +1,99 @@
+// Перегрузка операторов
+// Перевод 12-ти часового времени в 24-ти часовое
+#include <iostream>
+#include <string>
+#include <locale>
+using namespace std;
+
+class time24                        // Класс для 24-х часового формата времени
+{
+private:
+	int hours;		// 0...23
+	int minutes;	// 0...59
+	int seconds;	// 0...59
+public:	
+	time24() : hours(0),minutes(0), seconds(0)  // конструктор без аргументов
+	{}
+	time24(int h, int m, int s):					// конструктор с тремя фргументами	
+		hours(h), minutes(m), seconds(s)
+	{}
+	void display() const // Формат времени 22:10:09
+	{
+		if (hours < 10) cout << '0';
+		cout << hours << ':';
+		if (minutes < 10) cout << '0';
+		cout << minutes << ':';
+		if (seconds < 10) cout << '0';
+		cout << seconds;
+	}
+	int getHrs() const { return hours; }
+	int getMins() const { return minutes; }
+	int getSecs() const { return seconds; }
+};
+
+class time12					// Класс для 12-ти часового формата времени
+{
+private:
+	bool pm;	// true = pm, false = am
+	int hrs;	// 1 - 12
+	int mins;	// 0 - 59
+public:
+	time12() : pm(true), hrs(0), mins(0) // конструктор без аргументов
+	{}	
+	time12(time24);						 // конструктор с 1-м аргументом
+	time12(bool ap, int h, int m) : pm(ap), hrs(h), mins(m) // конструктор с 3-мя аргументами
+	{}
+	void display() const
+	{
+		cout << hrs << ':';
+		if (mins < 10) cout << '0'; // Дополнительный "0" для "01" минут
+		cout << mins << ' ';
+		string am_pm = pm ? "p.m." : "a.m.";
+		cout << am_pm;
+	}
+};
+// ------------------------------------------------------
+time12::time12(time24 t24)			// конструктор с 1-м аргументом 
+{									// преобразовать time24 в time12			
+	int hrs24 = t24.getHrs();		// получить часы 
+	pm = t24.getHrs() < 12 ? false : true; // определить am/pm
+	mins = (t24.getSecs() < 30) ? t24.getMins() : t24.getMins() + 1; // округление секунд
+	if (mins == 60)					// перенос минут
+	{
+		mins = 0;
+		++hrs24;
+		if (hrs24 == 12 || hrs24 == 24)				// переносим часы
+		pm = (pm == true) ? false : true;           // переключаем am/pm
+	}
+	hrs = (hrs24 < 13) ? hrs24: hrs24 - 12;         // преобразуем часы
+	if(hrs == 0)									// "00" будет 12 a.m.
+	{
+		hrs = 12; pm = false;
+	}										
+}
+////////////////////////////////////////////////////////////////////////
+int main()
+{
+	setlocale(LC_ALL, "Russian");
+	int h, m, s;
+	while (true)
+	{					// получение времени в 24-ом формате от пользователя
+		cout << "Введите время в 24-ом формате: \n";
+		cout << "Часы (от 0 до 23): "; cin >> h;
+		//if (h == 25) break;  // выход при вводе h = 25 ...........
+		if (h > 23)		// выводб если часов > 23
+			return (1);
+		cout << " Минуты: "; cin >> m;
+		cout << " Секунды: "; cin >> s;
+
+		time24 t24(h, m, s);   // сделать время в 24-ом формате
+		cout << " исходое время: ";
+		t24.display();         // вывести на экран время в 24-ом формате
+
+		time12 t12 = t24;      // преобразовать time24 в time12
+		cout << "\n В 12-ти часовом формате: ";
+		t12.display();         // вывести га экран время в 12-ти часовом формате
+		cout << "\n\n";		
+	}
+	return 0;
+}
